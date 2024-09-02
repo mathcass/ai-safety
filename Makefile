@@ -4,12 +4,16 @@
 # @file
 # @version 0.1
 
-run:
+run: install
 	poetry run python main.py
 
-lab:
+lab: install
 	poetry run jupyter lab
 
 support:
-	poetry run streamlit run customer-support-agent/app.py
+	$(MAKE) -C customer-support-agent
+
+install:
+	poetry install
+
 # end

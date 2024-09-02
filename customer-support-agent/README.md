@@ -5,6 +5,9 @@ I'm exploring tool use in agents, focusing on Anthropic at the moment.
 I found [this guide](https://docs.anthropic.com/en/docs/about-claude/use-case-guides/customer-support-chat) on building a customer service agent directly from
 Anthropic's documentation.
 
+You can run this scenario by installing all of the dependencies (see the parent
+directory's Makefile) and running `make` here.
+
 ## The "gotcha" moment
 
 Here, I was able to get the agent to be manipulated by some search results and
