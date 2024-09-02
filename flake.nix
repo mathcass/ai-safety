@@ -1,34 +1,43 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.poetry2nix.url = "github:nix-community/poetry2nix";
+  description = "Basic Python development environment";
 
-  outputs = { self, nixpkgs, poetry2nix }:
-    let
-      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
-    in
-    {
-      packages = forAllSystems (system: let
-        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs.${system}; }) mkPoetryApplication;
-      in {
-        default = mkPoetryApplication { projectDir = self; };
-      });
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
 
-      devShells = forAllSystems (system: let
-        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs.${system}; }) mkPoetryEnv;
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+
+        pythonPackages = ps:
+          with ps; [
+            jupyter
+            jupyterlab
+            # Add other Python packages you need here
+          ];
+
+        python312 = pkgs.python312.withPackages pythonPackages;
       in {
-        default = pkgs.${system}.mkShellNoCC {
-          packages = with pkgs.${system}; [
-            # (mkPoetryEnv { projectDir = self; })
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
             poetry
-            stdenv.cc.cc.lib
+            python312
+            stdenv.cc.cc.lib # This provides libstdc++
           ];
 
           shellHook = ''
-            export LD_LIBRARY_PATH=${pkgs.${system}.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH
+            export LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH
+            export PYTHON_312="${python312}/bin/python"
+
+            # Prefer Nix-provided libraries
+            export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
+              pkgs.stdenv.cc.cc
+              pkgs.zlib
+              pkgs.glib
+            ]}:$LD_LIBRARY_PATH
           '';
         };
       });
-    };
 }
