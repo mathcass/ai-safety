@@ -8,6 +8,10 @@ Anthropic's documentation.
 You can run this scenario by installing all of the dependencies (see the parent
 directory's Makefile) and running `make` here.
 
+The code for the interaction is in this directory and is almost verbatim what
+appears in Anthropic's tutorial. The main additions are adding [some tools here](https://github.com/mathcass/ai-safety/blob/main/customer-support-agent/config.py#L174-L258),
+and giving the agent the ability to call them.
+
 ## The "gotcha" moment
 
 Here, I was able to get the agent to be manipulated by some search results and
