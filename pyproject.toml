@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "ai-safety"
+version = "0.1.0"
+description = "Cass's tools for investigating AI Safety"
+authors = ["Cass Petrus <cass@petrus.me>"]
+readme = "README.md"
+packages = [{include = "ai_safety"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+jupyterlab = "^4.2.5"
+anthropic = "^0.34.1"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+jupyterlab-code-formatter = "^3.0.2"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
