@@ -10,6 +10,8 @@ packages = [{include = "ai_safety"}]
 python = "^3.12"
 jupyterlab = "^4.2.5"
 anthropic = "^0.34.1"
+pydantic = "^2.8.2"
+streamlit = "^1.38.0"
 
 
 [tool.poetry.group.dev.dependencies]
