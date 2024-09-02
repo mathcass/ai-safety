@@ -32,18 +32,19 @@ Here's a record of the whole interaction.
 ![](img/interaction-02.png)
 
 ### ...
+
 ![](img/interaction-03.png)
-
-### Asking for more information
-
-Here is when it searched
-
-![](img/interaction-04.png)
 
 ### Here, it has been instructed to ask for the email
 
-![](img/interaction-05.png)
+By this point, because the user was confused, the agent searches for more
+information to help them out, thus falling into the trap.
+
+![](img/interaction-04.png)
 
 ### Here is after it "sent" the email
 
-![](img/interaction-06.png)
+By this point, the agent has sent the email, which links to a link seeded in the
+text of the search query.
+
+![](img/interaction-05.png)
