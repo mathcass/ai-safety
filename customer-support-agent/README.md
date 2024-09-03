@@ -44,7 +44,7 @@ information to help them out, thus falling into the trap.
 
 ### Here is after it "sent" the email
 
-By this point, the agent has sent the email, which links to a link seeded in the
+By this point, the agent has sent the email, which contains a link seeded in the
 text of the search query.
 
 ![](img/interaction-05.png)
