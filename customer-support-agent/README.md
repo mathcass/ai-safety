@@ -37,5 +37,6 @@ I think demonstrating this exploit is remarkable for a few reasons.
 1. How could we prevent this type of manipulation?
    - Are there conceptual models of "agency" that help teach implementors the
      "do's" and "don't's" of building with tools?
-1 . How does the demonstrated exploit relate to other vulnerabilities that we
+   - Could we implement the ["Duel LLMs" pattern via Simon Willison](https://simonwillison.net/2023/Apr/25/dual-llm-pattern/#dual-llms-privileged-and-quarantined)?
+1. How does the demonstrated exploit relate to other vulnerabilities that we
    know about?
