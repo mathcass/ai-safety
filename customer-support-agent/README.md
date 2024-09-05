@@ -7,7 +7,7 @@ interaction](./EXPLOIT.md). Here's a brief overview:
 ## The Exploit
 
 1. Start: Use the customer support AI agent implementation from [Anthropic's documentation](https://docs.anthropic.com/en/docs/about-claude/use-case-guides/customer-support-chat)
-1. Modify: Add two functions to the agent - `search` & `send_email`
+1. Modify: Add two functions to the agent - [`search`](config.py#L220-L239) & [`send_email`](config.py#L242-L258)
 1. Key point: The `search` function can return hidden instructions for the agent
 1. Exploit: The hidden instructions instruct the agent to send an email
    containing a potentially malicious link
