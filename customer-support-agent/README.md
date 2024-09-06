@@ -7,7 +7,8 @@ interaction](./EXPLOIT.md). Here's a brief overview:
 ## The Exploit
 
 1. Start: Use the customer support AI agent implementation from [Anthropic's documentation](https://docs.anthropic.com/en/docs/about-claude/use-case-guides/customer-support-chat)
-1. Modify: Add two functions to the agent - [`search`](config.py#L220-L239) & [`send_email`](config.py#L242-L258)
+1. Modify: Add two functions to the agent - [`search`](config.py#L220-L244) &
+   [`send_email`](config.py#L247-L263)
 1. Key point: The `search` function can return hidden instructions for the agent
 1. Exploit: The hidden instructions instruct the agent to send an email
    containing a potentially malicious link
@@ -22,6 +23,9 @@ I think demonstrating this exploit is remarkable for a few reasons.
    that I can see people wanting to build upon
 1. Simple search and email functionality are features implementors will likely
    want to add to an application like this
+   a. The vector for prompt injection, "search", could be **retrieval over prior
+      support requests** where one potential exploit could be **attackers spamming
+      the support queue** with covert instructions
 1. Going from a working implementation to a potential exploit is very easy, and
    a naive implementation could cause a lot of harm
 1. The fact that it is incredibly easy to go from tutorial to harmful exploit
