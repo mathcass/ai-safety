@@ -23,7 +23,7 @@ I think demonstrating this exploit is remarkable for a few reasons.
    that I can see people wanting to build upon
 1. Simple search and email functionality are features implementors will likely
    want to add to an application like this
-   a. The vector for prompt injection, "search", could be **retrieval over prior
+   1. The vector for prompt injection, "search", could be **retrieval over prior
       support requests** where one potential exploit could be **attackers spamming
       the support queue** with covert instructions
 1. Going from a working implementation to a potential exploit is very easy, and
