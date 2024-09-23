@@ -6,7 +6,16 @@ from uuid import uuid4
 from pathlib import Path
 
 from anthropic import Anthropic
-from config import IDENTITY, TOOLS, MODEL, get_quote, search, send_email
+from config import (
+    IDENTITY,
+    TOOLS,
+    MODEL,
+    get_quote,
+    search,
+    send_email,
+    call_manager,
+    wrap_salt_mitigation,
+)
 
 
 class ChatBot:
@@ -93,11 +102,15 @@ class ChatBot:
 
         if func_name == "search":
             results = search(**func_params)
-            return f"Results from search: {results}"
+            return wrap_salt_mitigation(f"Results from search: {results}")
 
         if func_name == "send_email":
             results = send_email(**func_params)
             return f"Results from send_email: {results}"
+
+        if func_name == "call_manager":
+            results = call_manager(**func_params)
+            return f"Results from call_manager: {results}"
 
         raise Exception("An unexpected tool was used")
 
