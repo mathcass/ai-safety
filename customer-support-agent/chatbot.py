@@ -19,9 +19,10 @@ from config import (
 
 
 class ChatBot:
-    def __init__(self, session_state):
+    def __init__(self, session_state, use_guardrails=False):
         self.anthropic = Anthropic()
         self.session_state = session_state
+        self.use_guardrails = use_guardrails
 
     def generate_message(
         self,
@@ -102,7 +103,10 @@ class ChatBot:
 
         if func_name == "search":
             results = search(**func_params)
-            return wrap_salt_mitigation(f"Results from search: {results}")
+            if self.use_guardrails:
+                return wrap_salt_mitigation(f"Results from search: {results}")
+            else:
+                return f"Results from search: {results}"
 
         if func_name == "send_email":
             results = send_email(**func_params)
@@ -169,14 +173,16 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("output_folder")
+    parser.add_argument("-g", "--guard", action="store_true")
     args = parser.parse_args()
 
     class SessionState:
         def __init__(self):
             self.messages = []
 
+    breakpoint()
     session_state = SessionState()
-    chatbot = ChatBot(session_state)
+    chatbot = ChatBot(session_state, args.guard)
 
     initial_prompt = "Hi, I'm interested in getting a quote for car insurance."
     simulation_result = chatbot.simulate_conversation(initial_prompt, num_turns=10)

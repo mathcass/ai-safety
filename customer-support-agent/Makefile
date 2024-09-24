@@ -11,6 +11,6 @@ simulate-baseline:
 	poetry run python chatbot.py baseline-sonnet-and-sonnet
 
 simulate-comparison:
-	poetry run python chatbot.py comparison-sonnet-and-sonnet
+	poetry run python chatbot.py --guard comparison-sonnet-and-sonnet
 
 # end
