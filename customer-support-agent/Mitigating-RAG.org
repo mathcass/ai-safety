@@ -2,35 +2,30 @@
 
 * Introduction
 
-In recent years, the integration of advanced AI capabilities into everyday
-applications has accelerated rapidly. One area of particular interest is the use
-of Retrieval-Augmented Generation (RAG) in customer support scenarios. While
-these AI-powered tools offer significant improvements in efficiency and user
-experience, they also introduce new security challenges that demand our
-attention.
+The rapid integration of advanced AI capabilities into everyday applications has
+brought significant improvements in efficiency and user experience. However, it
+has also introduced new security challenges that demand our attention. In this
+study, we examine the potential vulnerabilities in AI systems that combine
+language models with external tools, focusing on Retrieval-Augmented Generation
+(RAG) in customer support scenarios.
 
-This article presents a case study examining the potential vulnerabilities in AI
-systems that combine language models with external tools, such as search
-functions and email capabilities. Our focus is on a common yet often overlooked
-risk: the possibility of data poisoning attacks in RAG systems, which could lead
-to the distribution of malicious content through seemingly trustworthy AI
-agents.
+Our primary concern is the possibility of data poisoning attacks in RAG systems,
+which could lead to the distribution of malicious content through seemingly
+trustworthy AI agents. Despite the growing adoption of these technologies, there
+is a concerning lack of discussion about data poisoning and other security risks
+in many RAG tutorials and guides. This research aims to highlight these risks
+and propose effective mitigation strategies.
 
-Despite the growing adoption of these technologies, there is a concerning lack
-of discussion about data poisoning and other security risks in many RAG
-tutorials and guides. This research aims to highlight these risks and propose
-effective mitigation strategies, contributing to the broader conversation on AI
-safety and security.
-
-* The Experiment
+* Methodology
 
 To investigate the vulnerabilities in AI tool use, we designed a simulated
 customer support agent powered by a large language model (LLM). This agent was
 equipped with two key capabilities often found in real-world customer support
 systems:
 
-1. A search function to retrieve information about products, services, or policies.
-1. An email function to send follow-up information to customers.
+1. A search function to retrieve information about products, services, or
+   policies.
+2. An email function to send follow-up information to customers.
 
 The core of our experiment involved implementing a specific exploit within the
 search function. This exploit was designed to simulate a scenario where a
@@ -39,7 +34,6 @@ a simplified version of the implemented search function:
 
 #+begin_src python
 MALICIOUS_LINK = "http://123.234.12.3/verify"
-
 
 def search(q: str):
     print("searching...")
@@ -60,25 +54,18 @@ def search(q: str):
 
 This function simulates a situation where an attacker has injected instructions
 into the search results, prompting the AI agent to include a malicious link in
-its email responses. The exploit takes advantage of the agent's ability to send
-emails, a common feature in customer support scenarios, to potentially
-distribute harmful content to unsuspecting users.
+its email responses.
 
 To test the effectiveness of this exploit and subsequent mitigation strategies,
 we conducted two types of tests:
 
 1. Manual Testing: We engaged in multiple conversations with the agent, asking
-   about specific car types, state-specific rules, or seeking advice. These
-   queries were designed to prompt the agent to use its search function,
-   potentially triggering the exploit.
-2. Automated Testing: To create more diverse and realistic scenarios, we
-   employed another language model to simulate user behavior. This allowed us to
-   conduct a larger number of test conversations efficiently.
+   about specific topics to prompt the use of its search function.
+2. Automated Testing: We employed another language model to simulate user
+   behavior, allowing for a larger number of test conversations.
 
-In both testing phases, we monitored how often the agent would fall for the
-exploit by including the malicious link in its email responses. This setup
-provided a foundation for assessing both the vulnerability of the system and the
-effectiveness of our subsequent mitigation efforts.
+In both testing phases, we monitored how often the agent would include the
+malicious link in its email responses.
 
 * Results
 
@@ -87,40 +74,35 @@ exposed to potentially malicious content through its search function. The
 results can be summarized as follows:
 
 Manual Testing:
-During manual testing, we observed that the agent used the search function in
-approximately half of the conversations. Alarmingly, in almost every instance
-where the agent did perform a search, it fell for the prompt injection,
-resulting in the inclusion of the malicious link in its email responses to the
-simulated customer.
+The agent used the search function in approximately half of the conversations.
+In almost every instance where the agent performed a search, it fell for the
+prompt injection, resulting in the inclusion of the malicious link in its email
+responses.
 
 Automated Testing:
-To gather more statistically significant data, we conducted automated tests
-using another language model to simulate user queries. In this phase, we ran 10
-simulated conversations. The results were as follows:
+We ran 10 simulated conversations, with the following results:
 
-- Baseline (without mitigation): In 4 out of 10 conversations (40%), the agent fell for the exploit and included the malicious link in its response.
+- Baseline (without mitigation): In 4 out of 10 conversations (40%), the agent
+  fell for the exploit and included the malicious link in its response.
 
-These results highlight a significant security risk. Even though the exploit
-didn't trigger in every conversation, a 40% success rate for a potential attack
-vector is alarmingly high in a real-world scenario. It demonstrates how easily
-an AI agent with access to external tools can be manipulated to distribute
-harmful content, potentially compromising user safety and the organization's
-reputation.
+These results highlight a significant security risk. A 40% success rate for a
+potential attack vector is alarmingly high in a real-world scenario,
+demonstrating how easily an AI agent with access to external tools can be
+manipulated to distribute harmful content.
 
 * Mitigation Strategy
 
 To address the identified vulnerability, we implemented a mitigation strategy
-based on the concept of "salted sequence tags," adapting an approach described
-in AWS documentation for prompt engineering best practices. Our strategy
-involved the following key elements:
+based on the concept of "salted sequence tags." Our strategy involved the
+following key elements:
 
 1. Unique Identifier: We used a UUID (Universally Unique Identifier) as a salt
    for each session, ensuring a unique tag for each piece of untrusted input.
-1. Content Wrapping: Instead of wrapping trusted instructions, we inverted the
-   approach by wrapping the untrusted input (search results) in salted tags.
-1. Clear Instructions: We provided explicit instructions to the model on how to
+2. Content Wrapping: We wrapped the untrusted input (search results) in salted
+   tags.
+3. Clear Instructions: We provided explicit instructions to the model on how to
    handle the content within these tags.
-1. Redundancy: Safety instructions were repeated before and after the tagged
+4. Redundancy: Safety instructions were repeated before and after the tagged
    content to reinforce their importance.
 
 Here's the Python function implementing this mitigation strategy:
@@ -148,130 +130,77 @@ Below are the results of calling a function. Proceed with caution:
     )
 #+end_src
 
-This approach effectively "quarantines" potentially malicious content,
-instructing the model to treat it with caution and not follow any instructions
-within the tagged section.
-
-Effectiveness of Mitigation:
 After implementing this mitigation strategy, we reran our automated tests with
 striking results:
-
 
 - Mitigated: In 0 out of 10 conversations (0%), the agent fell for the exploit.
 
 This dramatic improvement from a 40% to 0% exploit success rate demonstrates the
-potential effectiveness of our mitigation strategy. While the sample size is
-relatively small, the complete elimination of successful exploits in our tests
-is a promising indication of the strategy's robustness.
-
-It's worth noting that developing an effective mitigation strategy was an
-iterative process. Initial versions of the mitigation prompt were not entirely
-successful, highlighting the complexity of designing security measures for AI
-systems. The final version benefited from collaborative refinement, including
-insights from AI systems themselves, underscoring the value of iterative testing
-and diverse perspectives in addressing AI safety challenges.
+potential effectiveness of our mitigation strategy.
 
 * Discussion
 
 The results of our experiment highlight both the significant risks associated
 with tool use in AI systems and the potential for effective mitigation
-strategies. Here, we'll discuss the implications of our findings, potential
-real-world applications, and challenges that may arise in implementing these
-security measures at scale.
+strategies. The mitigation strategy we developed could be readily implemented in
+real-world scenarios, providing a robust framework for handling potentially
+malicious inputs.
 
-** Real-world Applicability:
-
-The mitigation strategy we developed could be readily implemented in real-world
-scenarios. The use of UUIDs to create unique identifiers for each session or
-piece of untrusted input is a practical approach that could be easily integrated
-into existing systems. The clear demarcation of untrusted content with unique
-tags, coupled with reinforced instructions before and after the tagged content,
-provides a robust framework for handling potentially malicious inputs.
-
-This approach could be standardized across different types of inputs or data
-sources, providing a consistent method for handling untrusted content in various
-AI applications. It's particularly relevant for systems that interact with
-external data sources or tools, such as customer support chatbots, information
-retrieval systems, or AI assistants with internet access.
-
-** Potential Challenges:
-While our mitigation strategy showed promising results in our controlled
-experiment, scaling this approach to real-world applications may present several
+However, scaling this approach to real-world applications may present several
 challenges:
 
-1. Context Window Limitations: One significant challenge identified is the
-   potential impact on models with limited context windows. For large inputs,
-   safety instructions might be pushed out of the context window, potentially
-   reducing the effectiveness of the mitigation. Possible solutions to this
-   issue could include:
-
-   - Chunking large inputs and applying safety measures to each chunk
-   - Implementing a sliding window approach where safety instructions are repeated at regular intervals
-   - Using models with larger context windows when dealing with substantial amounts of potentially untrusted data
-
-1. Performance and User Experience: Implementing these safety measures adds
+1. Context Window Limitations: For large inputs, safety instructions might be
+   pushed out of the context window, potentially reducing the effectiveness of
+   the mitigation.
+2. Performance and User Experience: Implementing these safety measures adds
    complexity to the system and could potentially impact response times or the
-   fluidity of interactions. Striking a balance between security and user
-   experience will be crucial for widespread adoption.
-1. Evolving Threats: As AI systems become more sophisticated, so too will
-   potential exploits. Continuous research and updating of security measures
-   will be necessary to stay ahead of emerging threats.
-1. Consistency Across Tools: In complex systems with multiple tools or data
-   sources, ensuring consistent application of safety measures across all
-   potential vulnerability points could be challenging.
+   fluidity of interactions.
+3. Evolving Threats: As AI systems become more sophisticated, so too will
+   potential exploits.
+4. Consistency Across Tools: Ensuring consistent application of safety measures
+   across all potential vulnerability points could be challenging in complex
+   systems.
 
-** Future Research Directions:
+* Future Research Directions
+
 Our study opens up several avenues for future research:
 
-1. Large-scale Testing: While our results are promising, larger-scale tests with
-   more diverse scenarios would provide more robust validation of the mitigation
-   strategy's effectiveness.
-1. Adaptive Mitigation: Developing systems that can dynamically adjust their
+1. Large-scale Testing: Larger-scale tests with more diverse scenarios would
+   provide more robust validation of the mitigation strategy's effectiveness.
+2. Adaptive Mitigation: Developing systems that can dynamically adjust their
    security measures based on the perceived risk level of inputs could enhance
    both security and efficiency.
-1. Cross-model Compatibility: Testing the effectiveness of this mitigation
+3. Cross-model Compatibility: Testing the effectiveness of this mitigation
    strategy across different language models and architectures would be valuable
    for broader applicability.
-1. User Studies: Investigating the impact of these security measures on user
+4. User Studies: Investigating the impact of these security measures on user
    experience and trust in AI systems could provide insights for optimal
    implementation.
 
 * Conclusion
 
-Our case study on mitigating risks in AI tool use, particularly in the context
-of RAG and customer support agents, reveals both the significant vulnerabilities
-present in these systems and the potential for effective security measures.
+Our study on mitigating risks in AI tool use, particularly in the context of RAG
+and customer support agents, reveals both significant vulnerabilities present in
+these systems and the potential for effective security measures. The ease with
+which an AI agent with external tool access can be manipulated to distribute
+harmful content is concerning, but our mitigation strategy shows promise in
+addressing these vulnerabilities.
 
-Key findings include:
+Perhaps most importantly, our research highlights a significant gap in many RAG
+tutorials and guides, which often overlook critical security risks. As AI
+systems with tool use capabilities become more prevalent, it's crucial that
+security considerations are integrated into the development process from the
+outset.
 
-1. The ease with which an AI agent with external tool access can be manipulated
-   to distribute harmful content, as demonstrated by our 40% exploit success
-   rate in the baseline scenario.
-1. The potential effectiveness of a carefully designed mitigation strategy,
-   which reduced the exploit success rate to 0% in our tests.
-1. The importance of clear boundaries between trusted and untrusted content,
-   reinforced instructions, and unique session identifiers in preventing
-   exploitation.
-
-Perhaps most concerningly, our research highlights a significant gap in many RAG
-tutorials and guides, which often overlook the critical issue of data poisoning
-and other security risks. As AI systems with tool use capabilities become more
-prevalent, it's crucial that security considerations are integrated into the
-development process from the outset, rather than treated as an afterthought.
-
-We call upon the AI research and development community to:
-
-1. Increase focus on security in RAG and tool use tutorials and documentation.
-1. Conduct more extensive research into potential vulnerabilities and mitigation
-   strategies for AI systems with external tool access.
-1. Develop standardized best practices for securing AI systems against data
-   poisoning and other exploit attempts.
+We call upon the AI research and development community to increase focus on
+security in RAG and tool use documentation, conduct more extensive research into
+potential vulnerabilities and mitigation strategies, and develop standardized
+best practices for securing AI systems against data poisoning and other exploit
+attempts.
 
 While our mitigation strategy shows promise, it should be viewed as a starting
 point rather than a definitive solution. The rapidly evolving landscape of AI
 capabilities and potential threats necessitates ongoing research, development,
-and vigilance.
-
-By addressing these security challenges head-on, we can work towards realizing
-the full potential of AI tools and RAG systems while safeguarding users and
-maintaining trust in these powerful technologies.
+and vigilance. By addressing these security challenges head-on, we can work
+towards realizing the full potential of AI tools and RAG systems while
+safeguarding users and maintaining trust in these powerful technologies.
