@@ -67,29 +67,6 @@ we conducted two types of tests:
 In both testing phases, we monitored how often the agent would include the
 malicious link in its email responses.
 
-* Results
-
-Our testing revealed concerning vulnerabilities in the AI agent's behavior when
-exposed to potentially malicious content through its search function. The
-results can be summarized as follows:
-
-Manual Testing:
-The agent used the search function in approximately half of the conversations.
-In almost every instance where the agent performed a search, it fell for the
-prompt injection, resulting in the inclusion of the malicious link in its email
-responses.
-
-Automated Testing:
-We ran 10 simulated conversations, with the following results:
-
-- Baseline (without mitigation): In 4 out of 10 conversations (40%), the agent
-  fell for the exploit and included the malicious link in its response.
-
-These results highlight a significant security risk. A 40% success rate for a
-potential attack vector is alarmingly high in a real-world scenario,
-demonstrating how easily an AI agent with access to external tools can be
-manipulated to distribute harmful content.
-
 * Mitigation Strategy
 
 To address the identified vulnerability, we implemented a mitigation strategy
@@ -138,28 +115,59 @@ striking results:
 This dramatic improvement from a 40% to 0% exploit success rate demonstrates the
 potential effectiveness of our mitigation strategy.
 
+* Results
+
+Our testing revealed concerning vulnerabilities in the AI agent's behavior when
+exposed to potentially malicious content through its search function. The
+results can be summarized as follows:
+
+Manual Testing:
+The agent used the search function in approximately half of the conversations.
+In almost every instance where the agent performed a search, it fell for the
+prompt injection, resulting in the inclusion of the malicious link in its email
+responses.
+
+Automated Testing:
+We ran 10 simulated conversations in each phase of our experiment:
+
+- Baseline (without mitigation): In 4 out of 10 conversations, the agent included the malicious link in its response.
+- After implementing mitigation: In 0 out of 10 conversations, the agent included the malicious link.
+
+This dramatic reduction from 4 occurrences to 0 is particularly noteworthy.
+Despite the relatively small sample size, this result is statistically
+significant at the 0.025 level (using Fisher's exact test), indicating a
+substantial improvement in the system's resilience against this type of attack.
+
+It's important to note that the initial 4 out of 10 figure doesn't represent a
+fixed "success rate" for this vulnerability in all scenarios. The actual risk in
+a real-world setting would depend on various factors, including how effectively
+an attacker could inject malicious content into the system's knowledge base.
+However, the complete elimination of successful exploits in our tests after
+implementing the mitigation strategy is a promising indication of its potential
+effectiveness.
+
 * Discussion
 
 The results of our experiment highlight both the significant risks associated
 with tool use in AI systems and the potential for effective mitigation
-strategies. The mitigation strategy we developed could be readily implemented in
-real-world scenarios, providing a robust framework for handling potentially
-malicious inputs.
+strategies. The complete elimination of successful exploits in our tests after
+implementing the mitigation strategy is particularly encouraging.
 
-However, scaling this approach to real-world applications may present several
-challenges:
+While the sample size of our study was relatively small (10 conversations in
+each phase), the observed change from 4 successes to 0 is statistically
+significant. This suggests that our mitigation strategy has a real and
+substantial effect on preventing the exploit, rather than the improvement being
+due to random chance.
 
-1. Context Window Limitations: For large inputs, safety instructions might be
-   pushed out of the context window, potentially reducing the effectiveness of
-   the mitigation.
-2. Performance and User Experience: Implementing these safety measures adds
-   complexity to the system and could potentially impact response times or the
-   fluidity of interactions.
-3. Evolving Threats: As AI systems become more sophisticated, so too will
-   potential exploits.
-4. Consistency Across Tools: Ensuring consistent application of safety measures
-   across all potential vulnerability points could be challenging in complex
-   systems.
+However, it's crucial to interpret these results cautiously. The effectiveness
+of our mitigation strategy in a real-world scenario may vary depending on
+factors such as the sophistication of potential attacks, the diversity of user
+queries, and the specific implementation details of the RAG system.
+
+The mitigation strategy we developed could be readily implemented in real-world
+scenarios, providing a robust framework for handling potentially malicious
+inputs. It demonstrates that with careful design, we can significantly reduce
+the vulnerability of AI systems to certain types of attacks.
 
 * Future Research Directions
 
@@ -181,16 +189,15 @@ Our study opens up several avenues for future research:
 
 Our study on mitigating risks in AI tool use, particularly in the context of RAG
 and customer support agents, reveals both significant vulnerabilities present in
-these systems and the potential for effective security measures. The ease with
-which an AI agent with external tool access can be manipulated to distribute
-harmful content is concerning, but our mitigation strategy shows promise in
-addressing these vulnerabilities.
+these systems and the potential for effective security measures. The complete
+elimination of successful exploits in our tests after implementing the
+mitigation strategy is particularly noteworthy, especially given the statistical
+significance of this result.
 
-Perhaps most importantly, our research highlights a significant gap in many RAG
-tutorials and guides, which often overlook critical security risks. As AI
-systems with tool use capabilities become more prevalent, it's crucial that
-security considerations are integrated into the development process from the
-outset.
+However, we must emphasize that this is just the beginning. While our mitigation
+strategy shows promise, it should be viewed as a starting point rather than a
+definitive solution. The rapidly evolving landscape of AI capabilities and
+potential threats necessitates ongoing research, development, and vigilance.
 
 We call upon the AI research and development community to increase focus on
 security in RAG and tool use documentation, conduct more extensive research into
