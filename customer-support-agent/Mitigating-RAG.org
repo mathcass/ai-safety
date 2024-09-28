@@ -204,10 +204,3 @@ security in RAG and tool use documentation, conduct more extensive research into
 potential vulnerabilities and mitigation strategies, and develop standardized
 best practices for securing AI systems against data poisoning and other exploit
 attempts.
-
-While our mitigation strategy shows promise, it should be viewed as a starting
-point rather than a definitive solution. The rapidly evolving landscape of AI
-capabilities and potential threats necessitates ongoing research, development,
-and vigilance. By addressing these security challenges head-on, we can work
-towards realizing the full potential of AI tools and RAG systems while
-safeguarding users and maintaining trust in these powerful technologies.
