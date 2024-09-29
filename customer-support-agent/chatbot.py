@@ -180,7 +180,6 @@ if __name__ == "__main__":
         def __init__(self):
             self.messages = []
 
-    breakpoint()
     session_state = SessionState()
     chatbot = ChatBot(session_state, args.guard)
 
