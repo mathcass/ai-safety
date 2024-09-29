@@ -34,7 +34,7 @@ and teachable mitigation strategies.
 ** Setup
 
 To investigate the vulnerabilities in AI tool use, we started from Anthropic's
-learning module on building a customer support agent[2]. Our intent here was to
+learning module on building a customer support agent[2] in Python. Our intent here was to
 start from a beginner's tutorial and work our way up to a vulnerable codebase
 with a few small changes.
 
@@ -42,8 +42,8 @@ We equipped the agent with two key capabilities that are often found in
 real-world customer support systems:
 
 1. A search function to retrieve information about products, services, or
-   policies.
-2. An email function to send follow-up information to customers.
+   policies
+2. An email function to send follow-up information to customers
 
 These are natural additions and it isn't unreasonable to think that a naive
 implementor would want to add them to this agent.
@@ -59,7 +59,7 @@ the exploit.
 
 To that end, we make our search function 100% exploited, where it returns a
 prompt injection asking the agent to send an email with a malicious link.
-Here's its implementation:
+Here's its Python implementation:
 
 #+begin_src python
 MALICIOUS_LINK = "http://123.234.12.3/verify"
@@ -108,8 +108,8 @@ session or within the body of an email.
 * Mitigation Strategy
 
 To address the identified vulnerability, we implemented a mitigation strategy
-based on the concept of "salted sequence tags."[1] Our strategy involved the
-following key elements:
+based on the concept of "salted sequence tags"[1]. This involves the following
+key elements:
 
 1. Unique Identifier: We used a UUID (Universally Unique Identifier) as a salt
    for each session, ensuring a unique tag for each piece of untrusted input.
@@ -164,8 +164,8 @@ We ran 17 simulated conversations in each phase of our experiment:
 #+name: results
 | group / safety         | safe session | unsafe session | total sessions |
 |------------------------+--------------+----------------+----------------|
-| Baseline (vulnerable)  |           10 |              7 |                |
-| Comparison (mitigated) |           17 |              0 |                |
+| Baseline (vulnerable)  |           10 |              7 |             17 |
+| Comparison (mitigated) |           17 |              0 |             17 |
 
 ("safe session" means the agent *did not* share a malcious link at all while
 "unsafe session" means that it *did*.)
@@ -178,19 +178,19 @@ resilience against this type of attack.
 
 We should note that the initial 7 out of 17 figure isn't an estimate of the
 baseline "success rate" here. This is because we have forced the exploit into
-every search result which inflates the true risk. In a real-world setting the
-risk would depend on various factors, including how effectively an attacker
-could inject malicious content into the system's knowledge base. However, the
-complete elimination of successful exploits in our tests after implementing the
+every search result which inflates the true risk. In a live application the risk
+would depend on various factors, including how effectively an attacker could
+inject malicious content into the system's knowledge base. However, the complete
+elimination of successful exploits in our tests after implementing the
 mitigation is a promising indication of its potential effectiveness.
 
 * Discussion
 
 While the sample size of our study was relatively small (17 conversations in
 each phase), the observed change from 7 successes to 0 is statistically
-significant. This suggests that our mitigation strategy has a real and
-substantial effect on preventing the exploit, rather than the improvement being
-due to chance.
+significant. This suggests that our mitigation strategy has a substantial
+effect on preventing the exploit, rather than the improvement being due to
+chance.
 
 However, it's crucial to interpret these results cautiously. The effectiveness
 of our mitigation strategy in a real-world scenario may vary depending on
@@ -204,7 +204,7 @@ the mitigation suggests that this could be an effective technique to teach
 people early in the learning process.
 
 The mitigation strategy we developed could be readily taught to people
-immediately after they learn about how to user language models as agents with
+immediately after they learn about how to use language models as agents with
 other tools. Anthropic deserves some credit for mentioning the risks within the
 tutorial we used to bootstrap the agent[2a].
 
@@ -213,11 +213,11 @@ tutorial we used to bootstrap the agent[2a].
 Our study opens up several avenues for future research:
 
 1. Cross-model Compatibility
-   a. we focused exclusively on Claude Sonnet 3.5 but many types of models exist
-      and are in use
-   b. in particular, investigating smaller models would give us insight
-      into whether there exist thresholds where guardrails like the one we used
-      are effective
+   a. we focused exclusively on Claude Sonnet 3.5 but many types of models
+      exist, including open weight ones
+   b. in particular, investigating smaller models would give us insight into
+      whether these guardrails work for models below certain thresholds
+      (parameters size, safety score)
 2. Researching agentic frameworks and hardening them with guardrails
    a. there existing many frameworks (autogen, crewAI, LangGraph) for building
       agents but as of writing, most did not include mitigation in their RAG implementations
@@ -249,7 +249,7 @@ While demonstrating these exploits aren't new results, we believe that showing
 how effective they are with a simple implementation are.
 
 We call on educators to call out the risks of these types of attacks earlier in
-the learning process. And we additional call on builders of agentic tools to
+the learning process. And we additionally call on builders of agentic tools to
 incorporate guardrails into their tools.
 
 * References
