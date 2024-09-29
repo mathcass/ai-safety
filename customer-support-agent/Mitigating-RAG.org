@@ -15,14 +15,18 @@ brought significant improvements in efficiency and user experience. However, it
 has also introduced new security challenges that demand our attention. In this
 study, we examine the potential vulnerabilities in AI systems that combine
 language models with external tools, focusing on Retrieval-Augmented Generation
-(RAG) in customer support scenarios.
+(RAG) in customer support scenarios. Briefly, RAG refers to augmenting how a
+language model responds by including certain content in its prompt that it
+can use as knowledge to draw from.
 
 Our primary concern is how quickly a naive builder can make their application
 vulnerable to potential exploits when they include a retrieval mechanism over
-untrusted text. We'll start from a tutorial from a language model vender and
+untrusted text. We'll start from a tutorial from a language model vendor and
 demonstrate that adding a few simple functions without safeguards can lead to
-unsafe and malicious code. Then, we'll work on a mitigation technique that is
-robust to the issue we introduce.
+unsafe and malicious code. Specifically, the exploit we'll demonstrate is when a
+bad actor tricks the agent into sharing a URL with the user that could contain a
+virus or could leak private information. Then, we'll work on a mitigation
+technique that is robust to the issue we introduce.
 
 We'll conclude that there is a concerning lack of discussion about data
 poisoning and other security risks in many beginner tool use or RAG tutorials
@@ -34,16 +38,25 @@ and teachable mitigation strategies.
 ** Setup
 
 To investigate the vulnerabilities in AI tool use, we started from Anthropic's
-learning module on building a customer support agent[2] in Python. Our intent here was to
-start from a beginner's tutorial and work our way up to a vulnerable codebase
-with a few small changes.
+learning module on building a customer support agent[2] in Python. In their
+tutorial, they use Claude to model an agent for an insurance company. One
+feature they showcase is that Claude can use "tools", which are capabilities you
+can give the model access to perform. They give it the ability to compute an
+insurance quote.
 
-We equipped the agent with two key capabilities that are often found in
-real-world customer support systems:
+Our objective was to demonstrate how a beginner-level tutorial could be
+inadvertently transformed into a vulnerable codebase through minimal
+modifications. Using the code they provided as a starting point, we equip the
+agent with two key capabilities that are often found in real-world customer
+support systems:
 
-1. A search function to retrieve information about products, services, or
-   policies
-2. An email function to send follow-up information to customers
+- A search function to retrieve information about products, services, or
+  policies
+  - we could imagine that this is useful for searching over an internal
+    knowledge base, prior support tickets, or even an email queue
+- An email function to send follow-up information to customers
+  - customer support often involves multiple communication channels with agents
+    switching between live chat and email, even for a single customer
 
 These are natural additions and it isn't unreasonable to think that a naive
 implementor would want to add them to this agent.
@@ -90,13 +103,16 @@ base model for the initial tutorial.
 To test the effectiveness of the exploit and subsequent mitigation strategies,
 we conducted two types of tests:
 
-1. Manual Testing: We engaged in multiple conversations with the agent, asking
+1. Manual Testing: We engaged in roughly 10 conversations with the agent, asking
    about specific topics to prompt the use of its search function.
 2. Automated Testing: We employed another language model to simulate the "user",
    allowing for a larger number of test conversations.
 
 For the automated testing, we conducted 17 sessions with the baseline
 ("vulnerable") setup and 17 sessions comparison ("mitigated", discussed below).
+(Author's note, the number 17 was an arbitrary choice based on convenience and
+budget. Once we conducted 17 trials of the baseline scenario, we ran 17 for the
+comparison to evenly match them.)
 
 ** Assessment
 
@@ -105,6 +121,13 @@ attack and shared the (fake) malicious link with the user. We count a session as
 "hacked" if the agent shares the malicious link with the user directly in the
 session or within the body of an email.
 
+The reason why sharing the link with the user is problematic is because URLs are
+a common attack vector for hackers. Most phishing schemes involve convicing
+someone to click a link that could install malware on someone's computer and
+take it over. Being able have an agent from a company or brand share such a link
+takes advantage of a customer's trust and increases the change that they'll
+click on it, thus falling victim to the phishing.
+
 * Mitigation Strategy
 
 To address the identified vulnerability, we implemented a mitigation strategy
@@ -112,13 +135,15 @@ based on the concept of "salted sequence tags"[1]. This involves the following
 key elements:
 
 1. Unique Identifier: We used a UUID (Universally Unique Identifier) as a salt
-   for each session, ensuring a unique tag for each piece of untrusted input.
+   for each session, ensuring a unique tag for each piece of untrusted input
+   - A UUID is a safe choice because the change of someone reproducing the same
+     ID is astronomically low[4]
 2. Content Wrapping: We wrapped the untrusted input (search results) in salted
-   tags.
+   tags
 3. Clear Instructions: We provided explicit instructions to the model on how to
-   handle the content within these tags.
+   handle the content within these tags
 4. Redundancy: Safety instructions were repeated before and after the tagged
-   content to reinforce their importance.
+   content emphasizes their critical nature
 
 Here's the Python function implementing this mitigation strategy:
 
@@ -145,6 +170,15 @@ Below are the results of calling a function. Proceed with caution:
     )
 #+end_src
 
+This mitigation addresses the vulnerability we introduced by adding a
+"quarantine" mechanism to the retrieval step. Any untrusted content is bracketed
+by the unique identifier. Moreover, there is a low probability of an attacker
+reproducing the exact identifier.
+
+Note that the mitigation function includes ~<static_content>~ tags, which are
+also used in the base prompt for the customer support agent. Here, we match the
+conventions in the language model's existing prompts.
+
 * Results
 
 Our testing revealed concerning vulnerabilities in the AI agent's behavior when
@@ -152,25 +186,25 @@ exposed to potentially malicious content through its search function. The
 results can be summarized as follows:
 
 Manual Testing:
-The agent used the search function in approximately half of the conversations.
-In almost every instance where the agent performed a search, it fell for the
-prompt injection, resulting in the inclusion of the malicious link in its email
-responses. In several sessions, the agent even shared the malicious link
-directly with the user.
+The agent used the search function in 5 out of 10 conversations. In  every
+instance where the agent performed a search, it fell for the prompt injection,
+resulting in the inclusion of the malicious link in its email responses. In
+several sessions, the agent even shared the malicious link directly with the
+user.
 
 Automated Testing:
 We ran 17 simulated conversations in each phase of our experiment:
 
+*Note*: "safe session" means the agent *did not* share a malcious link at all
+while "unsafe session" means that it *did*.
+
 #+name: results
 | group / safety         | safe session | unsafe session | total sessions |
 |------------------------+--------------+----------------+----------------|
-| Baseline (vulnerable)  |           10 |              7 |             17 |
-| Comparison (mitigated) |           17 |              0 |             17 |
+| Baseline (vulnerable)  | 10 (58%)     | 7 (41%)        |             17 |
+| Comparison (mitigated) | 17 (100%)    | 0 (0%)         |             17 |
 
-("safe session" means the agent *did not* share a malcious link at all while
-"unsafe session" means that it *did*.)
-
-This dramatic improvement from a 41% to 0% exploit success rate demonstrates the
+This improvement from a 41% exploit success rate to 0% demonstrates the
 potential effectiveness of our mitigation strategy. Despite the relatively small
 sample size, this result is statistically significant at the 0.0077 level (using
 Fisher's exact test), indicating a substantial improvement in the system's
@@ -180,37 +214,51 @@ We should note that the initial 7 out of 17 figure isn't an estimate of the
 baseline "success rate" here. This is because we have forced the exploit into
 every search result which inflates the true risk. In a live application the risk
 would depend on various factors, including how effectively an attacker could
-inject malicious content into the system's knowledge base. However, the complete
-elimination of successful exploits in our tests after implementing the
-mitigation is a promising indication of its potential effectiveness.
+inject malicious content into the system's knowledge base. The complete
+elimination of successful exploits post-mitigation suggests the strategy's
+potential effectiveness.
 
 * Discussion
 
 While the sample size of our study was relatively small (17 conversations in
 each phase), the observed change from 7 successes to 0 is statistically
-significant. This suggests that our mitigation strategy has a substantial
-effect on preventing the exploit, rather than the improvement being due to
-chance.
+significant. This indicates that the observed improvement is likely attributable
+to our mitigation strategy rather than random variation.
+
+Our findings underscore the critical importance of robust security measures in
+AI systems, particularly those employing Retrieval-Augmented Generation (RAG).
+The ease with which a seemingly benign customer support agent can be manipulated
+to distribute malicious content highlights a significant vulnerability in
+current AI implementations. This vulnerability is particularly concerning given
+the increasing reliance on AI-driven customer support systems across various
+industries. Our study emphasizes that as AI capabilities expand, so too must our
+approach to AI security evolve.
 
 However, it's crucial to interpret these results cautiously. The effectiveness
 of our mitigation strategy in a real-world scenario may vary depending on
 factors such as the sophistication of potential attacks, the diversity of user
 queries, and the specific implementation details of the RAG system.
 
-The results of our experiment highlight both the significant risks a beginner
-could introduce by including search or other tools that pull from untrusted
-sources. The complete elimination of exploits in our tests after implementing
-the mitigation suggests that this could be an effective technique to teach
-people early in the learning process.
+The dramatic reduction in successful exploits achieved through our relatively
+simple mitigation techniques suggests that significant improvements in AI
+security may be achievable without necessarily compromising functionality.
+However, there is also a need for ongoing vigilance and research in this rapidly
+evolving field. The mitigation we implemented, while effective in this
+controlled experiment, points to a broader need for systematic safeguards in AI
+systems that interact with external data sources. As the field progresses, it is
+likely that attackers will develop increasingly sophisticated methods to
+circumvent such protections, necessitating continuous advancement in AI security
+measures.
 
 The mitigation strategy we developed could be readily taught to people
 immediately after they learn about how to use language models as agents with
-other tools. Anthropic deserves some credit for mentioning the risks within the
-tutorial we used to bootstrap the agent[2a].
+other tools.
 
 * Future Research Directions
 
-Our study opens up several avenues for future research:
+Our study opens up several avenues for future research. Knowing more about how
+effective these resources builds on the guidance we can give builders (both
+model builders and model users) to help safeguard applications.
 
 1. Cross-model Compatibility
    a. we focused exclusively on Claude Sonnet 3.5 but many types of models
@@ -218,6 +266,8 @@ Our study opens up several avenues for future research:
    b. in particular, investigating smaller models would give us insight into
       whether these guardrails work for models below certain thresholds
       (parameters size, safety score)
+      a. learning more about smaller models tells us more about their
+         susceptibility to attack
 2. Researching agentic frameworks and hardening them with guardrails
    a. there existing many frameworks (autogen, crewAI, LangGraph) for building
       agents but as of writing, most did not include mitigation in their RAG implementations
@@ -235,22 +285,37 @@ Our study opens up several avenues for future research:
       malicious intent
    b. further research should verify that guardrails don't detract from the
       positive intent and results that search capabilities enable
+   c. it is important that applications we build are still effective at their
+      job and that mitigations don't hinder how well they work
+
 
 * Conclusion
 
 Our study on mitigating risks in AI tool use, particularly in the context of RAG
-and customer support agents, reveals both significant vulnerabilities present in
-these systems and the potential for effective security measures. The complete
-elimination of successful exploits in our tests after implementing the
-mitigation strategy is particularly noteworthy, especially given the statistical
-significance of this result.
+and customer support agents, reveals significant vulnerabilities present in
+these systems. It also demonstrates the potential for effective security
+measures. The complete elimination of successful exploits in our tests after
+implementing the mitigation strategy is noteworthy because of the magnitude of
+the improvement (and its statistical significance) as well as the simplicity of
+its implementation.
 
-While demonstrating these exploits aren't new results, we believe that showing
-how effective they are with a simple implementation are.
+Demonstrating these exploits aren't new results, as previous authors have
+elaborated on this before[5]. We believe that showcasing a simple mitigation
+points out that safeguarding these systems is achievable without monumental
+effort.
 
 We call on educators to call out the risks of these types of attacks earlier in
 the learning process. And we additionally call on builders of agentic tools to
-incorporate guardrails into their tools.
+incorporate guardrails into their tools. Anthropic deserves credit for
+mentioning the risks in their latest version of the tutorial we used to
+bootstrap the agent[2a].
+
+Looking ahead, the intersection of AI capabilities and security concerns will
+likely become an increasingly critical area of focus. Our work demonstrates that
+even simple mitigation strategies can have a significant impact. As the field
+progresses, we anticipate that the development of more sophisticated security
+measures will go hand-in-hand with advancements in AI functionality, ultimately
+leading to more trustworthy and reliable AI systems.
 
 * References
 
@@ -262,3 +327,6 @@ incorporate guardrails into their tools.
    a. Strengthen input and output guardrails, https://docs.anthropic.com/en/docs/about-claude/use-case-guides/customer-support-chat#strengthen-input-and-output-guardrails
 3. How RAG Poisoning Made Llama3 Racist!, 2024,
    https://repello.ai/blog/how-rag-poisoning-made-llama3-racist-1c5e390dd564
+4. How unique is UUID?, 2018, https://stackoverflow.com/questions/1155008/how-unique-is-uuid#1155027
+5. The Dual LLM pattern for building AI assistants that can resist prompt
+   injection, 2023, https://simonwillison.net/2023/Apr/25/dual-llm-pattern/
