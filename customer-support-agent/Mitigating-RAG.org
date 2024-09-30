@@ -1,11 +1,16 @@
 #+title: Mitigating Risks in AI Tool Use: A Case Study on RAG and Customer Support Agents
+#+date: 2024-09-29
+#+author: Cass Petrus
+#+tags[]: ai-safety large-language-models
+#+draft: false
+#+slug: mitigating-risks-in-ai-tool-use
 
 #+begin_info
 This document lives in several places for accessibility,
 
-- GitHub
+- [[https://github.com/mathcass/ai-safety/blob/main/customer-support-agent/Mitigating-RAG.org][GitHub]]
 - [[https://docs.google.com/document/d/1ePUU2xt2KOvZ2HSx8qXzYbV3afUrILzAxWFxBo6h2J8/edit][Google Docs]] (for comments)
-- My blog
+- [[https://mathcass.com/blog/mitigating-risks-in-ai-tool-use/][My blog]]
 #+end_info
 
 * Introduction
