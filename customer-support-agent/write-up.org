@@ -1,0 +1,72 @@
+#+title: The Dangers of Function Calling
+
+FRom Seiji
+
+we're not setting up builders to successfully mitigate risks and exploits in
+tool use.
+
+* Brief
+
+The code in this repository shows how you can go from
+
+As a user, all you need to do to trigger this is to ask the agent a question
+that it doesn't know. During one conversation, I asked if it knew the names of
+some of the new eletric cars being made in China. In another, I asked what the
+main risks were for batteries (since it offered insurance coverage for
+batteries). Once it searches, then there's a chance of being fed potentially
+malicious prompt.
+
+* Introduction
+
+Anthropic has a great tutorial on building a customer support agent using their
+platform,
+https://docs.anthropic.com/en/docs/about-claude/use-case-guides/customer-support-chat
+It showcases Claude's ability to use tools. Many models support tools (or
+functions) these days including OpenAI and even several open source models.
+
+Today I want to use this use case and example to demonstrate what can go wrong
+when you give models access to tools and what you can do about it. Starting from
+where their guide leaves off, I'll give a support agent access to search for
+information from past issues as well as the ability to send email. I'll
+demonstrate how search opens up your application to search poisoning attacks,
+and how email can be hijacked for malicious use.
+And I'll walk you through what you can do to prevent it.
+
+Let's get started.
+
+* Background
+
+Using language models to act as a support agent is a great use of this
+technology. I don't think (and I don't want) language models to fully replace
+human support representatives, but I think there's definitely a role for
+language models to play here. I worked in support for several years and it can
+be an overwhelming experience to field up to 10 conversations at once, context
+switching between them to try to help out the person on the other end. And all
+it can take is one tricky problem to bring all of your chats to a halt. There
+are plenty of support inquiries that fit between "interactive FAQ" and "I need
+to speak with a human now" that models could help augment, taking some of the
+burden off human workers.
+
+Function calling is a way to give language models the ability to take some sort
+of action. It could be as simple as performing a computation, like creating a
+quote in the example usecase. And it can be as complex as retrieving information
+from a database, summarizing it, and updating it again. But giving models access
+to tools can be risky, because you need them to use the tool properly, without
+abusing it.
+
+I could imagine that someone reading through the guide would naturally want to
+add two tools: search over previous support tickets and sending email.
+
+Searching over previous tickets provides a lot of information for the model to
+emulate and reproduce in its current context. People seeking support tend to
+have similar problems, so looking at how someone solved it before is a quick way
+to help someone out. Giving a model the ability to search through past issues
+could drastically increase the resolution rate of an agent.
+
+And emailing is also a natural extension of doing good support. Unless you're
+building an agent on a platform like Facebook Messenger or WhatApp, people
+aren't going to stick around in a chat box for follow-up questions. And it's
+common practice to send people summaries or transcripts of their chat, so they
+can reference them.
+
+So, we'll add these two functions to the agent example.
